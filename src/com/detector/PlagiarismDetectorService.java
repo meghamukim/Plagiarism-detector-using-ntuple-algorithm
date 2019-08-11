@@ -22,10 +22,6 @@ public class PlagiarismDetectorService {
 
     public Map<String, Set<String>> generateSynonymsMap(String synonymsFile) throws IOException {
         File file = new File(synonymsFile);
-        if (file.length() == 0) {
-            System.out.println("\nSynonyms file is empty. \n Cannot proceed further");
-            System.exit(-1);
-        }
         BufferedReader reader = null;
         reader = new BufferedReader(new FileReader(synonymsFile));
         String line;

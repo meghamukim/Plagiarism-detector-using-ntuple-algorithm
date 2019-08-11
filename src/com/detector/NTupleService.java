@@ -85,7 +85,7 @@ public class NTupleService {
 
         for (int i = 0; i < cwords.length; i++) {
             if (cwords[i].compareTo(rwords[i]) != 0) {
-                if (synonymsMap.containsKey(cwords[i]) && synonymsMap.containsKey(rwords[i])) {
+                if (!synonymsMap.isEmpty() && synonymsMap.containsKey(cwords[i]) && synonymsMap.containsKey(rwords[i])) {
                     synonymsMap.get(cwords[i]).retainAll(synonymsMap.get(rwords[i]));
                     // Check if there was an intersection in the synonyms list for the two words being compared
                     if (synonymsMap.get(cwords[i]).size() < 0) {
