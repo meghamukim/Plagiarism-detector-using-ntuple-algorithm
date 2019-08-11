@@ -20,6 +20,7 @@ The output of the program should be the percent of tuples in file1 which appear 
 3. All the comparisons are case-insensitive.
 4. The application handles only String data types for comparisons & synonyms.
 5. If the either of the input files are empty then plagiarism is 0%.
+6. If the synonyms.txt is empty then we just look for exact matches.
 
 ### Design decisions:
 
