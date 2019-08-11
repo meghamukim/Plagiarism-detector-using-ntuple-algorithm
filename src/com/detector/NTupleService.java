@@ -1,6 +1,6 @@
-/**
- * NTupleService.java
- * Class to create tuples and implement any related processing
+/*
+  NTupleService.java
+  Class to create tuples and implement any related processing
  */
 package com.detector;
 
@@ -21,26 +21,37 @@ public class NTupleService {
         return nTupleServiceInstance == null ? new NTupleService() : nTupleServiceInstance;
     }
 
-    /**
-     *
-     * @param inputFilePath
-     * @param tupleSize size of each tuple to be created
-     * @return List of tuples (Ntuples data type)
-     * @throws IOException
-     */
-    public NTuples generateAllTuples(String inputFilePath, int tupleSize) throws IOException {
-        NTuples tuples = new NTuples();
-        File file = new File(inputFilePath);
-        if (file.length() != 0) {
-            BufferedReader reader = null;
-            reader = new BufferedReader(new FileReader(inputFilePath));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                tuples.addAll(generateTuplesFromLine(line, tupleSize));
+    private Map<String, Integer> addTuplesToMap (NTuples tuples) {
+        Map<String, Integer> repoTuplesMap = new HashMap<>();
+        for (String str : tuples.tuples) {
+            if (!repoTuplesMap.containsKey(str)) {
+                repoTuplesMap.put(str, 1);
+            } else {
+                repoTuplesMap.put(str, repoTuplesMap.get(str) + 1);
             }
-            reader.close();
         }
-        return tuples;
+        return repoTuplesMap;
+    }
+
+    private boolean IsMatch(String client, String repo, Map<String, Set<String>> synonymsMap) {
+        String []cwords = client.split(" ");
+        String []rwords = repo.split(" ");
+
+        for (int i = 0; i < cwords.length; i++) {
+            if (cwords[i].compareTo(rwords[i]) != 0) {
+                if (!synonymsMap.isEmpty() && synonymsMap.containsKey(cwords[i]) && synonymsMap.containsKey(rwords[i])) {
+                    synonymsMap.get(cwords[i]).retainAll(synonymsMap.get(rwords[i]));
+                    // Check if there was an intersection in the synonyms list for the two words being compared
+                    if (synonymsMap.get(cwords[i]).size() < 0) {
+                        return false;
+                    }
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /***
@@ -49,7 +60,7 @@ public class NTupleService {
      * @param tupleSize - Size of the tuples
      * @return List of tuples of size tupleSize
      */
-    public NTuples generateTuplesFromLine(String line, int tupleSize) {
+    private NTuples generateTuplesFromLine(String line, int tupleSize) {
         NTuples lineTuples = new NTuples();
         String[] words = line.toLowerCase().split("\\W+");
         if (words.length < tupleSize) {
@@ -67,38 +78,25 @@ public class NTupleService {
         return lineTuples;
     }
 
-    public Map<String, Integer> addTuplesToMap (NTuples tuples) {
-        Map<String, Integer> repoTuplesMap = new HashMap<String, Integer>();
-        for (String str : tuples.tuples) {
-            if (!repoTuplesMap.containsKey(str)) {
-                repoTuplesMap.put(str, 1);
-            } else {
-                repoTuplesMap.put(str, repoTuplesMap.get(str) + 1);
+    /**
+     *
+     * @param inputFilePath file path for the input file for which tuples have to be generated
+     * @param tupleSize size of each tuple to be created
+     * @return List of tuples (Ntuples data type)
+     * @throws IOException Input Output Exception
+     */
+    public NTuples generateAllTuples(String inputFilePath, int tupleSize) throws IOException {
+        NTuples tuples = new NTuples();
+        File file = new File(inputFilePath);
+        if (file.length() != 0) {
+            BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                tuples.addAll(generateTuplesFromLine(line, tupleSize));
             }
+            reader.close();
         }
-        return repoTuplesMap;
-    }
-
-    public boolean IsMatch(String client, String repo, Map<String, Set<String>> synonymsMap) {
-        String []cwords = client.split(" ");
-        String []rwords = repo.split(" ");
-
-        for (int i = 0; i < cwords.length; i++) {
-            if (cwords[i].compareTo(rwords[i]) != 0) {
-                if (!synonymsMap.isEmpty() && synonymsMap.containsKey(cwords[i]) && synonymsMap.containsKey(rwords[i])) {
-                    synonymsMap.get(cwords[i]).retainAll(synonymsMap.get(rwords[i]));
-                    // Check if there was an intersection in the synonyms list for the two words being compared
-                    if (synonymsMap.get(cwords[i]).size() < 0) {
-                        return false;
-                    }
-                    continue;
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return tuples;
     }
 
     /***
@@ -115,7 +113,6 @@ public class NTupleService {
             if (repoTuplesMap.containsKey(clientTuples.tuples.get(idx))) {
                 matchedCount++;
                 matched = true;
-                continue;
             } else {
                 // If there was not an exact match then check if there is a synonym present
                 for (int jdx = 0; jdx < repoTuples.tuples.size(); jdx++) {

@@ -22,20 +22,19 @@ public class PlagiarismDetectorService {
 
     public Map<String, Set<String>> generateSynonymsMap(String synonymsFile) throws IOException {
         File file = new File(synonymsFile);
-        BufferedReader reader = null;
-        reader = new BufferedReader(new FileReader(synonymsFile));
+        BufferedReader reader = new BufferedReader(new FileReader(synonymsFile));
         String line;
-        Map<String, Set<String>> synonymsMap = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> synonymsMap = new HashMap<>();
         while ((line = reader.readLine()) != null) {
-            String words[] = line.toLowerCase().split("\\W+");
-            for (int i = 0; i < words.length; i++) {
-                Set<String> synonymSet = new HashSet<String>(Arrays.asList(words));
-                if (synonymsMap.containsKey(words[i])) {
+            String []words = line.toLowerCase().split("\\W+");
+            for (String word: words) {
+                Set<String> synonymSet = new HashSet<>(Arrays.asList(words));
+                if (synonymsMap.containsKey(word)) {
                     // If the word is already present, this means it was encountered in a different line of synonyms
                     // than previous list. Add the existing set of synonyms to to the new one.
-                    synonymSet.addAll(synonymsMap.get(words[i]));
+                    synonymSet.addAll(synonymsMap.get(word));
                 }
-                synonymsMap.put(words[i], synonymSet);
+                synonymsMap.put(word, synonymSet);
             }
         }
         reader.close();
@@ -47,7 +46,6 @@ public class PlagiarismDetectorService {
     public double calculatePlagiarismPercentage(String synonymFilePath, String clientFilePath,
                                              String repoFilePath, int tupleSize) throws IOException {
         double plagiarizedPercent = 0;
-        double ratio = 0;
 
         NTuples repoTuples = NTupleService.getNTupleServiceInstance().generateAllTuples(repoFilePath, tupleSize);
         NTuples clientTuples = NTupleService.getNTupleServiceInstance().generateAllTuples(clientFilePath, tupleSize);
@@ -57,7 +55,7 @@ public class PlagiarismDetectorService {
         }
 
         Map<String, Set<String>> synonymsMap = generateSynonymsMap(synonymFilePath);
-        ratio =  NTupleService.getNTupleServiceInstance().getTuplesMatchedUnmatchedRatio(repoTuples, clientTuples, synonymsMap);
+        double ratio =  NTupleService.getNTupleServiceInstance().getTuplesMatchedUnmatchedRatio(repoTuples, clientTuples, synonymsMap);
         plagiarizedPercent = ratio * 100;
         return plagiarizedPercent;
     }
